@@ -1,35 +1,41 @@
 import sqlite3
+import time
 
-conn = sqlite3.connect('D:/reddit.db')
+conn = sqlite3.connect('C:/BigData/reddit.db')
+subreddits_iterator = conn.cursor()
 cursor = conn.cursor()
+vocabularies_list = []
 
 # Copyright to David Kofoed Wind
 def get_words_from_string(s):
     symbols = ['\n', '`', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '{', '[', ']', '}',
                '|', '\\', ':', ';', '"', "'", '<', '>', '.', '?', '/', ',']
-
-    #s = """**Most Popular Comments**   \n\n---\n|Score|Author|Post Title|Link to comment|\n|:-|-|-|-|\n|4186|/u/DrowningDream|[WP] A Man gets to paradise. Unfortunately, Lucifer won the War"""
-
     s = s.lower()
     for sym in symbols:
         s = s.replace(sym, " ")
-
     words = set()
     for w in s.split(" "):
         if len(w.replace(" ", "")) > 0:
             words.add(w)
+    return words
 
-    print(words)
+def iterate_over_subreddits():
+    start_time = time.time()
+    subreddits_iterator.execute("SELECT id FROM subreddits LIMIT 1")
+    for row in subreddits_iterator:
+        size = calculate_subreddit_vocabulary_size(row[0])
+        vocabularies_list.append((row, size))
+    print(vocabularies_list)
+    print("Runing time: %s seconds" % (time.time() - start_time))
 
-def get_comment_bodies():
-    cursor.execute('SELECT body FROM comments LIMIT 10')
+def calculate_subreddit_vocabulary_size(subreddit_id):
+    unique_words = set()
+    cursor.execute("SELECT comm.body "
+                   "FROM subreddits sub INNER JOIN comments comm "
+                   "WHERE sub.id = ?", (subreddit_id,))
     for row in cursor:
-        get_words_from_string(row[0])
+        unique_words.update(get_words_from_string(row[0]))
 
-def test():
-    cursor.execute('SELECT COUNT(*) FROM comments')
-    for row in cursor:
-        print(row)
+    return len(unique_words)
 
-# get_comment_bodies()
-test()
+iterate_over_subreddits()
