@@ -1,6 +1,7 @@
 import sqlite3
 import time
 import multiprocessing
+import operator
 
 conn = sqlite3.connect('C:/BigData/reddit.db')
 subreddits_iterator = conn.cursor()
@@ -39,11 +40,23 @@ def iterate_over_subreddits():
 
 def print_sorted_vocabularies():
     global vocabularies_dict
-    for vocabulary in vocabularies_dict.keys():
-        print("[%s : %s]" % (vocabulary, len(vocabularies_dict.get(vocabulary))))
+    for key, value in vocabularies_dict.items():
+        vocabularies_dict.update({key : len(value)})
+    sortedv = sorted(vocabularies_dict.items(), key=operator.itemgetter(1), reverse=True)
+    i = 0
+    cursor = conn.cursor()
+    print ("Ten subreddits with largest vocabularies: ")
+    for key, value in sortedv:
+        if i < 10:
+            name = cursor.execute("SELECT name FROM subreddits WHERE id = ?", (key,))
+            print("[Subreddit ID: %s | Subreddit name: %s | Vocabulary size: %s]" % (key, name.fetchone()[0], value))
+            i = i + 1
+        else:
+            break
+
 
 if __name__ == '__main__':
     start_time = time.time()
     iterate_over_subreddits()
     print_sorted_vocabularies()
-    print(time.time() - start_time)
+    print("Execution time: %s seconds." % (time.time() - start_time))
