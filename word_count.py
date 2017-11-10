@@ -1,5 +1,5 @@
 from mrjob.job import MRJob
-from vocabularies import get_words_from_string
+from vocabularies_old import get_words_from_string
 import sqlite3
 import time
 

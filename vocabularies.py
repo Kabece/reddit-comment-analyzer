@@ -1,11 +1,10 @@
 import sqlite3
 import time
-from multiprocessing import Pool
+import multiprocessing
 
-conn = sqlite3.connect('C:/BigData/reddit.db', check_same_thread=False)
+conn = sqlite3.connect('C:/BigData/reddit.db')
 subreddits_iterator = conn.cursor()
-cursor = conn.cursor()
-vocabularies_list = []
+vocabularies_dict = dict()
 
 # Copyright to David Kofoed Wind
 def get_words_from_string(s):
@@ -20,29 +19,31 @@ def get_words_from_string(s):
             words.add(w)
     return words
 
-def iterate_over_subreddits():
-    subreddits_iterator.execute("SELECT id FROM subreddits LIMIT 1")
-    for row in subreddits_iterator:
-        size = calculate_subreddit_vocabulary_size(row[0])
-        vocabularies_list.append((row, size))
-    print(vocabularies_list)
+def task(row):
+    return {row[0]: get_words_from_string(row[1])}
 
-def calculate_subreddit_vocabulary_size(subreddit_id):
-    pool = Pool(processes=4)
-    unique_words = set()
-    cursor.execute("SELECT comm.body "
-                   "FROM subreddits sub INNER JOIN comments comm "
-                   "WHERE sub.id = ?", (subreddit_id,))
+def iterate_over_subreddits():
+    global vocabularies_dict
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    subreddits_iterator.execute("SELECT subreddit_id, body from comments LIMIT 1000");
     while(True):
-        rows = cursor.fetchmany(4)
+        rows = subreddits_iterator.fetchmany(100)
         if len(rows) > 0:
-              for row in rows:
-                unique_words.update(pool.apply_async(get_words_from_string, (row[0],)).get())
+            result = pool.map_async(task, rows)
+            for dict in result.get():
+                vocabularies_dict.update(dict)
         else:
             break
-    return len(unique_words)
+    pool.close()
+    pool.join()
+
+def print_sorted_vocabularies():
+    global vocabularies_dict
+    for vocabulary in vocabularies_dict.keys():
+        print("[%s : %s]" % (vocabulary, len(vocabularies_dict.get(vocabulary))))
 
 if __name__ == '__main__':
     start_time = time.time()
     iterate_over_subreddits()
+    print_sorted_vocabularies()
     print(time.time() - start_time)
