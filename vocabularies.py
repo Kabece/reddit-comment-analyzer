@@ -21,9 +21,15 @@ def get_words_from_string(s):
     return words
 
 def task(row):
-    return {row[0]: get_words_from_string(row[1])}
+    global vocabularies_dict
+    voc_ser = vocabularies_dict.get(row[0])
+    if voc_ser is None:
+        voc_ser = set(get_words_from_string(row[1]))
+    else:
+        voc_ser.update(get_words_from_string(row[1]))
+    return {row[0]: voc_ser}
 
-def iterate_over_subreddits():
+def iterate_over_comments():
     global vocabularies_dict
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     subreddits_iterator.execute("SELECT subreddit_id, body from comments");
@@ -57,6 +63,6 @@ def print_sorted_vocabularies():
 
 if __name__ == '__main__':
     start_time = time.time()
-    iterate_over_subreddits()
+    iterate_over_comments()
     print_sorted_vocabularies()
     print("Execution time: %s seconds." % (time.time() - start_time))
