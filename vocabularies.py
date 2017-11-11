@@ -26,9 +26,9 @@ def task(row):
 def iterate_over_subreddits():
     global vocabularies_dict
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    subreddits_iterator.execute("SELECT subreddit_id, body from comments LIMIT 1000");
+    subreddits_iterator.execute("SELECT subreddit_id, body from comments");
     while(True):
-        rows = subreddits_iterator.fetchmany(100)
+        rows = subreddits_iterator.fetchmany(1000)
         if len(rows) > 0:
             result = pool.map_async(task, rows)
             for dict in result.get():
