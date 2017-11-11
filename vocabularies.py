@@ -21,24 +21,23 @@ def get_words_from_string(s):
     return words
 
 def task(row):
-    global vocabularies_dict
-    voc_ser = vocabularies_dict.get(row[0])
-    if voc_ser is None:
-        voc_ser = set(get_words_from_string(row[1]))
-    else:
-        voc_ser.update(get_words_from_string(row[1]))
-    return {row[0]: voc_ser}
+    return (row[0], get_words_from_string(row[1]))
 
 def iterate_over_comments():
     global vocabularies_dict
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     subreddits_iterator.execute("SELECT subreddit_id, body from comments");
     while(True):
-        rows = subreddits_iterator.fetchmany(1000)
+        rows = subreddits_iterator.fetchmany(10000)
         if len(rows) > 0:
             result = pool.map_async(task, rows)
-            for dict in result.get():
-                vocabularies_dict.update(dict)
+            for tuple in result.get():
+                voc_ser = vocabularies_dict.get(tuple[0])
+                if voc_ser is None:
+                    voc_ser = set(tuple[1])
+                else:
+                    voc_ser.update(tuple[1])
+                vocabularies_dict.update({tuple[0] : voc_ser})
         else:
             break
     pool.close()
