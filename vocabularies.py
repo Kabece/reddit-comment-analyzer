@@ -4,6 +4,8 @@ import multiprocessing
 import operator
 import sys
 
+conn = sqlite3.connect('C:/BigData/reddit.db')
+subreddits_iterator = conn.cursor()
 vocabularies_dict = dict()
 
 # Copyright to David Kofoed Wind
@@ -25,7 +27,7 @@ def task(row):
 def iterate_over_comments():
     global vocabularies_dict
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    subreddits_iterator.execute("SELECT subreddit_id, body from comments");
+    subreddits_iterator.execute("SELECT subreddit_id, body from comments LIMIT 100000");
     while(True):
         rows = subreddits_iterator.fetchmany(10000)
         if len(rows) > 0:
@@ -61,8 +63,8 @@ def print_sorted_vocabularies():
 
 if __name__ == '__main__':
     start_time = time.time()
-    conn = sqlite3.connect(sys.argv[1])
-    subreddits_iterator = conn.cursor()
+    # conn = sqlite3.connect(sys.argv[1])
+    # subreddits_iterator = conn.cursor()
     iterate_over_comments()
     print_sorted_vocabularies()
     print("Execution time: %s seconds." % (time.time() - start_time))

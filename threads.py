@@ -1,12 +1,8 @@
-import sqlite3
-import time
 import operator
-import itertools
-import multiprocessing
+import sqlite3
 import sys
+import time
 
-conn = sqlite3.connect('C:/BigData/reddit.db')
-comments_iterator = conn.cursor()
 threads_dict = dict()
 size_dict = dict()
 
@@ -45,7 +41,7 @@ def task(row):
 def iterate_over_comments():
     global threads_dict
     comments_iterator.execute("SELECT id, subreddit_id, parent_id FROM comments"
-                              " WHERE parent_id LIKE 't3%' LIMIT 1000000")
+                              " WHERE parent_id LIKE 't3%'")
     while(True):
         rows = comments_iterator.fetchmany(10000)
         if len(rows) > 0:
@@ -80,8 +76,8 @@ def print_sorted_vocabularies():
 
 if __name__ == '__main__':
     start_time = time.time()
-    # conn = sqlite3.connect(sys.argv[1])
-    # subreddits_iterator = conn.cursor()
+    conn = sqlite3.connect(sys.argv[1])
+    comments_iterator = conn.cursor()
     iterate_over_comments()
     calculate_average()
     print_sorted_vocabularies()
