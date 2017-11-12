@@ -6,11 +6,11 @@ import itertools
 import sys
 
 
-vocabularies_dict = dict()
+threads_dict = dict()
 size_dict = dict()
 
 def iterate_over_comments():
-    global vocabularies_dict
+    global threads_dict
     subreddits_iterator.execute("SELECT subreddit_id, author_id FROM comments");
     for row in subreddits_iterator:
         subs_set = vocabularies_dict.get(row[0])
@@ -25,7 +25,7 @@ def task(tup):
     return len(tup[0].intersection(tup[1]))
 
 def find_common_authors():
-    global vocabularies_dict
+    global threads_dict
     global size_dict
     pairs = itertools.combinations(vocabularies_dict.keys(), 2)
     for pair in pairs:
