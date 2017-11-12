@@ -27,14 +27,11 @@ def task(tup):
 def find_common_authors():
     global vocabularies_dict
     global size_dict
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     pairs = itertools.combinations(vocabularies_dict.keys(), 2)
     for pair in pairs:
         size = len(vocabularies_dict[pair[0]].intersection(vocabularies_dict[pair[1]]))
         if size > 0:
             size_dict.update({(pair[0], pair[1]) : size})
-    pool.close()
-    pool.join()
 
 def print_sorted_vocabularies():
     global size_dict
