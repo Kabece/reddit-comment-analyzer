@@ -10,4 +10,4 @@ if test X$PBS_ENVIRONMENT = XPBS_BATCH; then cd $PBS_O_WORKDIR; fi
 
 module load python3/3.4.1
 
-python3 /zhome/c4/9/125030/Courses/authors.py /zhome/c4/9/125030/Courses/reddit.db
+python3 authors.py reddit.db

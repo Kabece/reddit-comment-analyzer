@@ -1,12 +1,10 @@
-import sqlite3
-import time
-import multiprocessing
-import operator
 import itertools
+import operator
+import sqlite3
 import sys
+import time
 
-
-threads_dict = dict()
+vocabularies_dict = dict()
 size_dict = dict()
 
 def iterate_over_comments():
